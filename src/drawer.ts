@@ -6,13 +6,15 @@ export class Drawer
     private ctx!: CanvasRenderingContext2D;
 
     private scene: Scene;
+    private recording: boolean;
 
     constructor()
     {
         this.initCanvas();
         this.initEvents();
 
-        this.scene = new Scene(480, 270);
+        this.recording = false;
+        this.scene = new Scene(3840, 1080);
     }
 
     private initCanvas()
@@ -31,8 +33,8 @@ export class Drawer
 
     private resize()
     {
-        this.canvas.width = 960;
-        this.canvas.height = 270;
+        this.canvas.width = 3840;
+        this.canvas.height = 1080;
     }
 
     private initEvents()
@@ -51,15 +53,17 @@ export class Drawer
         const videoChunks: Blob[] = [];
 
         const stream = this.canvas.captureStream(60);
-        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8' });
         recorder.ondataavailable = (event) =>
         {
             videoChunks.push(event.data);
+            console.log(`added : ${videoChunks.length}`)
         }
         recorder.onstop = () =>
         {
+            console.log(`merged : ${videoChunks.length}`)
             var blob = new Blob(videoChunks, {
-                'type': 'video/webm;codecs=vp9'
+                'type': 'video/webm;codecs=vp8'
             });
             var url = URL.createObjectURL(blob);
             var a = document.createElement('a') as HTMLAnchorElement;
@@ -71,29 +75,28 @@ export class Drawer
             window.URL.revokeObjectURL(url);
         }
 
-        recorder.start();
+        recorder.start(2000);
+        this.recording = true;
         this.drawScene(0);
 
         setTimeout(() =>
         {
+            this.recording = false;
             recorder.stop();
 
-        }, 1000);
+        }, 1900);
     }
 
     private drawScene(elapsedTime: number)
     {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        this.scene.update(elapsedTime);
 
-        this.scene.draw(this.ctx);
+        this.scene.draw(this.ctx, elapsedTime);
 
-        
-
-        requestAnimationFrame((elapsedTime) =>
+        requestAnimationFrame((runningTime) =>
         {
-            this.drawScene(elapsedTime);
+            if (this.recording)
+                this.drawScene(runningTime);
         })
     }
 }

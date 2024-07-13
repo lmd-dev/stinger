@@ -1,13 +1,13 @@
 body {
     margin: 0;
     background-color: #707e20;
-    /*width: 100vw;
+    width: 100vw;
     height: 100vh;
 
-    display: flex;*/
+    display: flex;
 }
 
 canvas {
-    width: 960px;
-    height: 270px;
+    width: 3840px;
+    height: 1080px;
 }
